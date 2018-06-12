@@ -15,13 +15,14 @@ Flitzi::Flitzi() {
 }
 
 void Flitzi::init() {
-  //Adafruit_SSD1306 display(OLED_RESET);
+  Serial.begin(9600);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(5,0);
-  servo.attach(7,600,2400);
+  //servo range is 180° to round 18°. Thats a mechanical issue.
+  servo.attach(7,750,2400);
   moveServo(servoForward);
 
 }
@@ -78,10 +79,8 @@ switch (degree) {
  }
 }
 
-void Flitzi::moveServo( int servoPos){
-  if (servoPos < 5) servoPos= 5;
-  if (servoPos > 180) servoPos= 180;
-  int delayTime=1000;
+void Flitzi::moveServo( byte servoPos){
+  int delayTime = 0;
   delayTime = abs(servo.read() - servoPos) * 3;
   servo.write(servoPos);
   //Serial.println("Time:" + String(delayTime));
@@ -109,22 +108,46 @@ int Flitzi::getDistance() {
   //Serial.println("Dist:" + String(normDist / 10));
   showAtDisplay(String(normDist));
   return (normDist);
-
 }
 
-int Flitzi::scanEnviroment(int ServoPos) {
+int Flitzi::scanEnviroment(byte ServoPos) {
   moveServo(ServoPos);
   int val = getDistance();
   showAtDisplay(String(val));
   return val;
 }
 
-int Flitzi::nextServoPos(int curPos, int step) {
-  int pos = curPos + step;
-  if (pos > 180) pos = 5;
-  return pos;
+byte Flitzi::nextServoPos(byte step) {
+int newPos = 0;
+  if (scanReverse == true) {
+    newPos = servo.read() + step;
+  }
+    else {
+      newPos = servo.read() - step;
+    };
+
+  if (newPos > 180 || newPos < 0 ) {
+    scanReverse = not scanReverse;
+    nextServoPos(step);
+  }
+  return newPos;
 }
 
 void Flitzi::enviromentMapping(){
 
 };
+
+void Flitzi::generateSimulationData() {
+
+  moveServo(180);
+  Serial.print("{");
+  do {
+    Serial.print(String(getDistance()) + ", ");
+    //delay(200);
+    moveServo(nextServoPos(5));
+
+  }while (scanReverse ==false);
+
+  Serial.println("1000}");
+
+}
