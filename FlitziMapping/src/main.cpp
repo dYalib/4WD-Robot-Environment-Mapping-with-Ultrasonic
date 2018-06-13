@@ -25,9 +25,10 @@ Flitzi robi;
 void setup() {
   #ifdef __AVR__
     robi.init();
+    robi.moveServo(0);
+    delay(3000);
   #endif
-  robi.moveServo(90);
-  delay(3000);
+
   //robi.generateSimulationData();
   //robi.generateSimulationData();
   //robi.generateSimulationData();
@@ -39,6 +40,10 @@ void loop() {
   d = robi.getDistance();
   #ifdef __AVR__
     robi.showAtDisplay(String(d));
+  #endif
+
+  #ifndef __AVR__
+    std::cout << "Dist: " << d << "\n";
   #endif
 
 }

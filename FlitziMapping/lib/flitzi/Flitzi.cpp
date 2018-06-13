@@ -11,6 +11,7 @@
 #endif
 
 #ifndef __AVR__
+  static UltrasonicSim ultrasonic;
   typedef unsigned char byte;
 #endif
 
@@ -100,7 +101,6 @@ switch (degree) {
 }
 
 void Flitzi::moveServo( byte servoPos){
-  #ifdef __AVR__
     int delayTime = 0;
     delayTime = abs(servo.read() - servoPos) * 3;
     servo.write(servoPos);
@@ -108,7 +108,6 @@ void Flitzi::moveServo( byte servoPos){
     //Serial.println("Pos");
     //Serial.println(String(servo.read()));
     delay(delayTime);
-  #endif
 
   #ifndef __AVR__
     std::cout << "Move Servo to " << (int) servoPos << '\n';
@@ -128,17 +127,20 @@ void Flitzi::showAtDisplay(String txt) {
 
 int Flitzi::getDistance() {
   int normDist = 0;
+
   for (int i=0; i < 10; i++) {
     #ifdef __AVR__
-        normDist += ultrasonic.distanceRead();
-        //Serial.println(" normDist: " + String(normDist));
+      normDist += ultrasonic.distanceRead();
+      //Serial.println(" normDist: " + String(normDist));
     #endif
 
     #ifndef __AVR__
-      //TODO: Lesen von Test Vektor!!
-      normDist += 0;
+      normDist+= ultrasonic.distanceRead(servo.read());
     #endif
   }
+
+
+
 
   if (normDist == 0) normDist=9999;
   normDist = normDist / 10;
@@ -162,22 +164,16 @@ int Flitzi::scanEnviroment(byte ServoPos) {
 byte Flitzi::nextServoPos(byte step) {
 int newPos = 0;
   if (scanReverse == true) {
-    #ifdef __AVR__
       newPos = servo.read() - step;
-    #endif
-
   }
     else {
-      #ifdef __AVR__
         newPos = servo.read() + step;
-      #endif
     };
   if (newPos > 180 || newPos < 0 ) {
     scanReverse = not scanReverse;
     newPos = nextServoPos(step);
   }
   return newPos;
-
 }
 
 void Flitzi::enviromentMapping(){
