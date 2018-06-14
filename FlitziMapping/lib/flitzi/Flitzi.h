@@ -15,6 +15,8 @@
     #include <UltrasonicSim.h>
 #endif
 
+#define MAPSIZE 20
+
 
 class Flitzi {
 
@@ -25,6 +27,7 @@ class Flitzi {
 
 public:
   Flitzi();
+    void visualiseArray();
   #ifdef __AVR__
     void init();
     void showAtDisplay(String txt);
@@ -42,6 +45,7 @@ public:
   void enviromentMapping();
 
 
+
 private:
   #ifndef __AVR__
     void delay(int ms);
@@ -51,6 +55,14 @@ private:
   #ifdef __AVR__
     Servo servo;
   #endif
+
+  struct envPoint {
+    unsigned char nib1 : 4;
+    unsigned char nib2 : 4;
+    unsigned char nib3 : 4;
+    unsigned char nib4 : 4;
+  };
+
   const byte  PIN_ENA=0;
   const byte  PIN_ENB=1;
   const byte  PIN_IN1=3; //HIGH -> forward
@@ -61,5 +73,5 @@ private:
   int curDist;
   //"normal" scan is clockwise,(180° to 0°). Reverse scan is the opposite
   boolean scanReverse = false;
-  //boolean mapping[30][100];
+  envPoint envMap [MAPSIZE][MAPSIZE];
 };

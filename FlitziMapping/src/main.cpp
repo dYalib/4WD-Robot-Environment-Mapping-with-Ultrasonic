@@ -29,6 +29,9 @@ void setup() {
     delay(3000);
   #endif
 
+  #ifndef __AVR__
+    robi.visualiseArray();
+  #endif
   //robi.generateSimulationData();
   //robi.generateSimulationData();
   //robi.generateSimulationData();

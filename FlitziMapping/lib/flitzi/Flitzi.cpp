@@ -195,3 +195,39 @@ void Flitzi::enviromentMapping(){
     Serial.println("1000}");
 }
 #endif
+
+#ifndef __AVR__
+void Flitzi::visualiseArray() {
+  envMap[2][3].nib1 = 1;
+  envMap[2][3].nib2 = 1;
+  FILE *f = fopen("out.ppm", "wb");
+  fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
+  for (int y=0; y<MAPSIZE * 2; y++) {
+      for (int x=0; x<MAPSIZE * 2; x++) {
+         if (envMap[x][y].nib1 == 0) {;
+          fputc(255, f);   // 0 .. 255 RED
+          fputc(0, f); // 0 .. 255 GREEN
+          fputc(0, f);  // 0 .. 255 BLUE
+        }
+        if (envMap[x][y].nib2 == 0) {;
+         fputc(255, f);   // 0 .. 255 RED
+         fputc(0, f); // 0 .. 255 GREEN
+         fputc(0, f);  // 0 .. 255 BLUE
+       }
+
+       if (envMap[x][y].nib1 == 1) {;
+        fputc(0, f);   // 0 .. 255 RED
+        fputc(255, f); // 0 .. 255 GREEN
+        fputc(0, f);  // 0 .. 255 BLUE
+      }
+      if (envMap[x][y].nib2 == 1) {;
+       fputc(0, f);   // 0 .. 255 RED
+       fputc(255, f); // 0 .. 255 GREEN
+       fputc(0, f);  // 0 .. 255 BLUE
+     }
+
+      }
+  }
+  fclose(f);
+}
+#endif
