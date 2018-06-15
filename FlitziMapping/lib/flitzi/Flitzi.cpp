@@ -17,6 +17,12 @@
 
 Flitzi::Flitzi() {
   curDist = 0;
+  curPose.x = 20;
+  curPose.y = 30;
+
+  setFieldOfRobot();
+
+
 }
 
 #ifndef __AVR__
@@ -139,10 +145,7 @@ int Flitzi::getDistance() {
     #endif
   }
 
-
-
-
-  if (normDist == 0) normDist=9999;
+  if (normDist == 0) normDist=255;
   normDist = normDist / 10;
   #ifdef __AVR__
     //Serial.println("Dist:" + String(normDist / 10));
@@ -197,37 +200,146 @@ void Flitzi::enviromentMapping(){
 #endif
 
 #ifndef __AVR__
+Flitzi::rgb Flitzi::getColor(int value){
+  rgb rgbVal;
+  switch (value) {
+    case -7 : {rgbVal.red = 0; rgbVal.green=165; rgbVal.blue=0; break;}
+    case -6 : {rgbVal.red = 0; rgbVal.green=180; rgbVal.blue=0; break;}
+    case -5 : {rgbVal.red = 0; rgbVal.green=119; rgbVal.blue=0; break;}
+    case -4 : {rgbVal.red = 0; rgbVal.green=210; rgbVal.blue=0; break;}
+    case -3 : {rgbVal.red = 0; rgbVal.green=225; rgbVal.blue=0; break;}
+    case -2 : {rgbVal.red = 0; rgbVal.green=240; rgbVal.blue=0; break;}
+    case -1 : {rgbVal.red = 0; rgbVal.green=255; rgbVal.blue=0; break;}
+    case 0 : {rgbVal.red = 125; rgbVal.green=125; rgbVal.blue=125; break;}
+    case 1 : {rgbVal.red = 255; rgbVal.green=0; rgbVal.blue=0; break;}
+    case 2 : {rgbVal.red = 240; rgbVal.green=0; rgbVal.blue=0; break;}
+    case 3 : {rgbVal.red = 225; rgbVal.green=0; rgbVal.blue=0; break;}
+    case 4 : {rgbVal.red = 210; rgbVal.green=0; rgbVal.blue=0; break;}
+    case 5 : {rgbVal.red = 119; rgbVal.green=0; rgbVal.blue=0; break;}
+    case 6 : {rgbVal.red = 180; rgbVal.green=0; rgbVal.blue=0; break;}
+    case 7 : {rgbVal.red = 165; rgbVal.green=0; rgbVal.blue=0; break;}
+    default : {rgbVal.red = 0; rgbVal.green=0; rgbVal.blue=0; break;}
+  }
+
+
+  return rgbVal;
+}
+
+
 void Flitzi::visualiseArray() {
-  envMap[2][3].nib1 = 1;
-  envMap[2][3].nib2 = 1;
+  //envMap[0][0].nib_00= -7;
+  //envMap[2][3].nib_11 =-7;
+  updateFieldProbably(90, 17, 7);
   FILE *f = fopen("out.ppm", "wb");
   fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
-  for (int y=0; y<MAPSIZE * 2; y++) {
-      for (int x=0; x<MAPSIZE * 2; x++) {
-         if (envMap[x][y].nib1 == 0) {;
-          fputc(255, f);   // 0 .. 255 RED
-          fputc(0, f); // 0 .. 255 GREEN
-          fputc(0, f);  // 0 .. 255 BLUE
+  for (int y= (MAPSIZE *2) -1; y >= 0 ; y--) {
+      for (int x=0 ;x <= (MAPSIZE * 2) -1; x++) {
+        rgb curColor = getColor(0);
+          //y and x even
+          if ( y % 2 == 0 &&  x % 2 == 0)  {
+            curColor = getColor(envMap[x/2][y/2].nib_00);
         }
-        if (envMap[x][y].nib2 == 0) {;
-         fputc(255, f);   // 0 .. 255 RED
-         fputc(0, f); // 0 .. 255 GREEN
-         fputc(0, f);  // 0 .. 255 BLUE
-       }
+          //y even and x odd
+          if ( y % 2 == 0 &&  x % 2 != 0)  {
+            curColor = getColor(envMap[x/2][y/2].nib_10);
+          }
+          //y odd and x even
+          if ( y % 2 != 0 &&  x % 2 == 0)  {
+            curColor = getColor(envMap[x/2][y/2].nib_01);
+          }
+          //y and x odd
+          if ( y % 2 != 0 &&  x % 2 != 0)  {
+            curColor = getColor(envMap[x/2][y/2].nib_11);
+          }
 
-       if (envMap[x][y].nib1 == 1) {;
-        fputc(0, f);   // 0 .. 255 RED
-        fputc(255, f); // 0 .. 255 GREEN
-        fputc(0, f);  // 0 .. 255 BLUE
-      }
-      if (envMap[x][y].nib2 == 1) {;
-       fputc(0, f);   // 0 .. 255 RED
-       fputc(255, f); // 0 .. 255 GREEN
-       fputc(0, f);  // 0 .. 255 BLUE
+          fputc(curColor.red, f);   // 0 .. 255 RED
+          fputc(curColor.green, f); // 0 .. 255 GREEN
+          fputc(curColor.blue, f);  // 0 .. 255 BLUE
      }
 
       }
+      fclose(f);
   }
-  fclose(f);
-}
 #endif
+
+void Flitzi::setEnvMapVal(div_t x, div_t y, byte val) {
+  if (x.rem < 2) {
+    if (y.rem < 2) {
+      envMap[x.quot][y.quot].nib_00 = val;
+    }
+    else {
+      envMap[x.quot][y.quot].nib_01 = val;
+    }
+  }
+  else {
+    if (y.rem < 2) {
+      envMap[x.quot][y.quot].nib_10 = val;
+    }
+    else {
+      envMap[x.quot][y.quot].nib_11 = val;
+    }
+  }
+}
+
+
+byte Flitzi::getEnvMapVal(div_t x, div_t y) {
+  if (x.rem < 2) {
+    if (y.rem < 2) {
+      return envMap[x.quot][y.quot].nib_00;
+    }
+    else {
+      return envMap[x.quot][y.quot].nib_01;
+    }
+  }
+  else {
+    if (y.rem < 2) {
+      return envMap[x.quot][y.quot].nib_10;
+    }
+    else {
+      return envMap[x.quot][y.quot].nib_11;
+    }
+  }
+}
+
+void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVal ){
+  switch (sensorAngle) {
+    case 0: {
+      if (dist + curPose.x >= MAPSIZE * RESOLUTION * 2) {
+        dist = MAPSIZE * RESOLUTION * 2 - curPose.x -1;
+      }
+      byte oldVal = getEnvMapVal(div(dist, 4), div(curPose.y, 4));
+      setEnvMapVal(div(dist + curPose.x, 4), div(curPose.y, 4), oldVal + alternationVal);
+      break;
+      }
+
+    case 90: {
+      if (dist + curPose.y >= MAPSIZE * RESOLUTION * 2) {
+        dist = MAPSIZE * RESOLUTION * 2 - curPose.y -1;
+              }
+      byte oldVal = getEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4));
+      setEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4), oldVal + alternationVal);
+      break;
+      }
+
+
+    case 180: {
+      if (curPose.x - dist < 0) {
+        dist = curPose.x;
+              }
+      byte oldVal = getEnvMapVal(div(dist, 4), div(curPose.y, 4));
+      setEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4), oldVal + alternationVal);
+      break;
+      }
+    }
+}
+
+
+void Flitzi::setFieldOfRobot(){
+//TODO: Check Valid Robot Pos!
+  for (byte x=0;x < ROBOTBREADTH / 2; x++){
+    for (byte y=0; y < ROBOTLENGHT; y++) {
+      setEnvMapVal(div (curPose.x + x,4), div (curPose.y - y, 4), -7);
+      setEnvMapVal(div (curPose.x -x ,4), div (curPose.y - y, 4), -7);
+    }
+  }
+}

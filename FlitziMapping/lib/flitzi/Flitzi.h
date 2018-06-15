@@ -16,6 +16,11 @@
 #endif
 
 #define MAPSIZE 20
+#define RESOLUTION 2
+#define MEASURINGANGLE 30
+#define ROBOTLENGHT 22
+#define ROBOTBREADTH 10
+
 
 
 class Flitzi {
@@ -50,18 +55,37 @@ private:
   #ifndef __AVR__
     void delay(int ms);
     ServoSim servo;
+
+    struct rgb {
+      byte red;
+      byte green;
+      byte blue;
+    };
+    rgb getColor(int value);
   #endif
 
   #ifdef __AVR__
     Servo servo;
   #endif
 
+  void setEnvMapVal(div_t x, div_t y, byte val);
+  byte getEnvMapVal(div_t x, div_t y);
+  void updateFieldProbably(unsigned char sensorAngle, byte dist,char alternationVal);
+  void setFieldOfRobot();
+
   struct envPoint {
-    unsigned char nib1 : 4;
-    unsigned char nib2 : 4;
-    unsigned char nib3 : 4;
-    unsigned char nib4 : 4;
+    char nib_00 : 4;
+    char nib_10 : 4;
+    char nib_01 : 4;
+    char nib_11 : 4;
   };
+
+  struct pose {
+    byte x;
+    byte y;
+  };
+
+
 
   const byte  PIN_ENA=0;
   const byte  PIN_ENB=1;
@@ -70,8 +94,9 @@ private:
   const byte  PIN_IN3=9; //LOW -> Back
   const byte  PIN_IN4=6; //PWM
   const byte  servoForward= 87;
-  int curDist;
+  byte curDist;
   //"normal" scan is antiClockwise,(0° to 180°). Reverse scan is the opposite
   boolean scanReverse = false;
   envPoint envMap [MAPSIZE][MAPSIZE];
+  pose curPose;
 };

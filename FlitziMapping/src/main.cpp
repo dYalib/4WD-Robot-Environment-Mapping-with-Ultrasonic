@@ -54,9 +54,11 @@ void loop() {
 #ifndef __AVR__
 int main() {
   setup();
+/*
   while(1==1) {
     loop();
   }
+  */
 return 0;
 }
 #endif
