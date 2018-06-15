@@ -128,7 +128,7 @@ void Flitzi::showAtDisplay(String txt) {
 int Flitzi::getDistance() {
   int normDist = 0;
 
-  for (int i=0; i < 10; i++) {
+  for (byte i=0; i < 10; i++) {
     #ifdef __AVR__
       normDist += ultrasonic.distanceRead();
       //Serial.println(" normDist: " + String(normDist));

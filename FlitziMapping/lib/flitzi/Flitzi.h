@@ -71,7 +71,7 @@ private:
   const byte  PIN_IN4=6; //PWM
   const byte  servoForward= 87;
   int curDist;
-  //"normal" scan is clockwise,(180° to 0°). Reverse scan is the opposite
+  //"normal" scan is antiClockwise,(0° to 180°). Reverse scan is the opposite
   boolean scanReverse = false;
   envPoint envMap [MAPSIZE][MAPSIZE];
 };
