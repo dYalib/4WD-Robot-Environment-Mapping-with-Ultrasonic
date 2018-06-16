@@ -17,8 +17,8 @@
 
 Flitzi::Flitzi() {
   curDist = 0;
-  curPose.x = 20;
-  curPose.y = 30;
+  curPose.x = 40;
+  curPose.y = 20;
 
   setFieldOfRobot();
 
@@ -27,7 +27,7 @@ Flitzi::Flitzi() {
 
 #ifndef __AVR__
   void Flitzi::delay(int ms) {
-    usleep(ms);
+    usleep(ms * 1000);
   }
 #endif
 
@@ -179,8 +179,45 @@ int newPos = 0;
   return newPos;
 }
 
-void Flitzi::enviromentMapping(){
 
+void Flitzi::enviromentMapping(){
+  byte curAngle = 0;
+  scanReverse=false;
+  byte dist=0;
+  int tmp=0;
+  do {
+    moveServo(curAngle);
+    dist=getDistance();
+    //obstacles
+
+    /* consider ultrasonic measuring angle
+    if (curAngle > 15 && curAngle < 165) {
+      for (int a=1; a <= MEASURINGANGLE/2; a++ ) {
+          updateFieldProbably(curAngle -a, dist,1);
+          updateFieldProbably(curAngle +a, dist,1);
+          //delay(2000);
+          //visualiseArray();
+        }
+      }
+      */
+    updateFieldProbably(curAngle, dist,1);
+
+
+    //freefieldS
+    for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
+      /* consider ultrasonic measuring angle
+      if (curAngle > 15 && curAngle < 165) {
+        for (int a=1; a <= MEASURINGANGLE/2; a++ ) {
+            updateFieldProbably(curAngle -a, k,-1);
+            updateFieldProbably(curAngle +a, k,-1);
+      }
+    }
+    */
+        updateFieldProbably(curAngle, k,-1);
+    }
+    curAngle = nextServoPos(5);
+    //tmp++;
+  } while (scanReverse == false);
 };
 
 #ifdef __AVR__
@@ -226,12 +263,14 @@ Flitzi::rgb Flitzi::getColor(int value){
 }
 
 
+
 void Flitzi::visualiseArray() {
   //envMap[0][0].nib_00= -7;
   //envMap[2][3].nib_11 =-7;
-  updateFieldProbably(90, 17, 7);
-  FILE *f = fopen("out.ppm", "wb");
-  fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
+  //updateFieldProbably(90, 17, 7);
+  //updateFieldProbably(170, 26, 4);
+    FILE *f = fopen("out.ppm", "wb");
+    fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
   for (int y= (MAPSIZE *2) -1; y >= 0 ; y--) {
       for (int x=0 ;x <= (MAPSIZE * 2) -1; x++) {
         rgb curColor = getColor(0);
@@ -260,29 +299,39 @@ void Flitzi::visualiseArray() {
       }
       fclose(f);
   }
-#endif
+
+  #endif
+
 
 void Flitzi::setEnvMapVal(div_t x, div_t y, byte val) {
-  if (x.rem < 2) {
-    if (y.rem < 2) {
-      envMap[x.quot][y.quot].nib_00 = val;
+ //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
+  if (!(x.quot < 0 or x.quot >= MAPSIZE ) and !(y.quot < 0 or y.quot >= MAPSIZE)) {
+    //std::cout << "set!" << '\n';
+    if (x.rem < 2) {
+      if (y.rem < 2) {
+        envMap[x.quot][y.quot].nib_00 = val;
+      }
+      else {
+        envMap[x.quot][y.quot].nib_01 = val;
+      }
     }
     else {
-      envMap[x.quot][y.quot].nib_01 = val;
-    }
-  }
-  else {
-    if (y.rem < 2) {
-      envMap[x.quot][y.quot].nib_10 = val;
-    }
-    else {
-      envMap[x.quot][y.quot].nib_11 = val;
+      if (y.rem < 2) {
+        envMap[x.quot][y.quot].nib_10 = val;
+      }
+      else {
+        envMap[x.quot][y.quot].nib_11 = val;
+      }
     }
   }
 }
 
-
 byte Flitzi::getEnvMapVal(div_t x, div_t y) {
+  //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
+  if ((x.quot < 0 or x.quot >= MAPSIZE ) or (y.quot < 0 or y.quot >= MAPSIZE)) {
+    return 0;
+  }
+  //std::cout << "get!" << '\n';
   if (x.rem < 2) {
     if (y.rem < 2) {
       return envMap[x.quot][y.quot].nib_00;
@@ -302,34 +351,56 @@ byte Flitzi::getEnvMapVal(div_t x, div_t y) {
 }
 
 void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVal ){
+  //std::cout << "sensorAngle: " << (int) sensorAngle << "\n";
   switch (sensorAngle) {
     case 0: {
+      /*
       if (dist + curPose.x >= MAPSIZE * RESOLUTION * 2) {
         dist = MAPSIZE * RESOLUTION * 2 - curPose.x -1;
       }
-      byte oldVal = getEnvMapVal(div(dist, 4), div(curPose.y, 4));
-      setEnvMapVal(div(dist + curPose.x, 4), div(curPose.y, 4), oldVal + alternationVal);
+      */
+      char oldVal = getEnvMapVal(div(curPose.x + dist, 4), div(curPose.y, 4));
+      if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+      setEnvMapVal(div(dist + curPose.x, 4), div(curPose.y, 4), oldVal);
       break;
       }
 
     case 90: {
+      /*
       if (dist + curPose.y >= MAPSIZE * RESOLUTION * 2) {
         dist = MAPSIZE * RESOLUTION * 2 - curPose.y -1;
               }
-      byte oldVal = getEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4));
-      setEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4), oldVal + alternationVal);
+      */
+      char oldVal = getEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4));
+      if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+      setEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4), oldVal);
       break;
       }
 
 
     case 180: {
+      /*
       if (curPose.x - dist < 0) {
         dist = curPose.x;
               }
-      byte oldVal = getEnvMapVal(div(dist, 4), div(curPose.y, 4));
-      setEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4), oldVal + alternationVal);
+      */
+      byte oldVal = getEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4));
+      if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+      setEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4), oldVal);
       break;
       }
+
+      default: {
+        float x =  cos(sensorAngle * PI / 180) * dist + curPose.x;
+        float y = sin(sensorAngle * PI / 180) * dist + curPose.y;
+              //std::cout << "x: " << x  << "y: " << y << " \n";
+
+        char oldVal = getEnvMapVal(div(x, 4), div(y, 4));
+        if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+        //std::cout << "oldval: " << (int) oldVal;
+        setEnvMapVal(div(x, 4), div(y, 4), oldVal);
+      }
+
     }
 }
 

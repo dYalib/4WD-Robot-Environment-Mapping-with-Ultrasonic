@@ -30,6 +30,7 @@ void setup() {
   #endif
 
   #ifndef __AVR__
+    robi.enviromentMapping();
     robi.visualiseArray();
   #endif
   //robi.generateSimulationData();

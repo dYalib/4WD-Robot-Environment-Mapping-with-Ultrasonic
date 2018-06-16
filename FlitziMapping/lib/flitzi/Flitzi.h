@@ -7,6 +7,8 @@
   #include <SPI.h>
 #endif
 
+#include <math.h>
+
 #ifndef __AVR__
     #include <stdlib.h>
     #include <iostream>
@@ -15,6 +17,7 @@
     #include <UltrasonicSim.h>
 #endif
 
+#define PI 3.14159265
 #define MAPSIZE 20
 #define RESOLUTION 2
 #define MEASURINGANGLE 30
