@@ -17,11 +17,11 @@
     #include <UltrasonicSim.h>
 #endif
 
-#define PI 3.14159265
+//#define PI 3.14159265
 #define MAPSIZE 20
 #define RESOLUTION 2
 #define MEASURINGANGLE 30
-#define ROBOTLENGHT 22
+#define ROBOTLENGHT 20
 #define ROBOTBREADTH 10
 
 
@@ -47,7 +47,7 @@ public:
   void stop();
   void turn (int degree);
   void moveServo( byte servoPos);
-  int getDistance();
+  byte getDistance();
   //int scanEnviroment(byte ServoPos);
   byte nextServoPos(byte step);
   void enviromentMapping();
@@ -56,20 +56,20 @@ public:
 
 private:
   #ifndef __AVR__
-    void delay(int ms);
+    void delay(unsigned int ms);
     ServoSim servo;
-
-    struct rgb {
-      byte red;
-      byte green;
-      byte blue;
-    };
-    rgb getColor(int value);
   #endif
 
   #ifdef __AVR__
     Servo servo;
   #endif
+
+  struct rgb {
+    byte red;
+    byte green;
+    byte blue;
+  };
+  rgb getColor(char value);
 
   void setEnvMapVal(div_t x, div_t y, byte val);
   byte getEnvMapVal(div_t x, div_t y);
@@ -90,16 +90,18 @@ private:
 
 
 
-  const byte  PIN_ENA=0;
-  const byte  PIN_ENB=1;
-  const byte  PIN_IN1=3; //HIGH -> forward
-  const byte  PIN_IN2=5; //PWM
-  const byte  PIN_IN3=9; //LOW -> Back
-  const byte  PIN_IN4=6; //PWM
-  const byte  servoForward= 87;
+  static const byte PIN_ENA PROGMEM=0;
+  static const byte PIN_ENB PROGMEM =1;
+  static const byte PIN_IN1 PROGMEM =3; //HIGH -> forward
+  static const byte PIN_IN2 PROGMEM =5; //PWM
+  static const byte PIN_IN3 PROGMEM =9; //LOW -> Back
+  static const byte PIN_IN4 PROGMEM =6; //PWM
+  static const byte servoForward PROGMEM = 87;
+  static const byte numbertwo PROGMEM = 2;
   byte curDist;
   //"normal" scan is antiClockwise,(0° to 180°). Reverse scan is the opposite
   boolean scanReverse = false;
   envPoint envMap [MAPSIZE][MAPSIZE];
   pose curPose;
+  String str="";
 };

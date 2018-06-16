@@ -14,7 +14,7 @@
 
 Flitzi robi;
   byte i = 0;
-  int d = 0;
+  byte d = 0;
 
 #ifndef __AVR__
   void delay(int ms) {
@@ -27,6 +27,8 @@ void setup() {
     robi.init();
     robi.moveServo(0);
     delay(3000);
+    robi.enviromentMapping();
+    robi.visualiseArray();
   #endif
 
   #ifndef __AVR__

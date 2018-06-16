@@ -6,8 +6,8 @@
   #define YPOS 1
   #define DELTAY 2
 
-  static Ultrasonic ultrasonic(A2,A3);
-  static Adafruit_SSD1306 display(OLED_RESET);
+  static  Ultrasonic ultrasonic(A2,A3);
+  static  Adafruit_SSD1306 display(OLED_RESET);
 #endif
 
 #ifndef __AVR__
@@ -19,14 +19,11 @@ Flitzi::Flitzi() {
   curDist = 0;
   curPose.x = 40;
   curPose.y = 20;
-
   setFieldOfRobot();
-
-
 }
 
 #ifndef __AVR__
-  void Flitzi::delay(int ms) {
+  void Flitzi::delay(unsigned int ms) {
     usleep(ms * 1000);
   }
 #endif
@@ -122,17 +119,20 @@ void Flitzi::moveServo( byte servoPos){
 
 #ifdef __AVR__
 void Flitzi::showAtDisplay(String txt) {
+  Serial.println(txt);
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(5,0);
+
+  //display.print(c);
   display.println(txt);
   display.display();
 }
 #endif
 
-int Flitzi::getDistance() {
-  int normDist = 0;
+byte Flitzi::getDistance() {
+  unsigned int normDist = 0;
 
   for (byte i=0; i < 10; i++) {
     #ifdef __AVR__
@@ -184,7 +184,6 @@ void Flitzi::enviromentMapping(){
   byte curAngle = 0;
   scanReverse=false;
   byte dist=0;
-  int tmp=0;
   do {
     moveServo(curAngle);
     dist=getDistance();
@@ -216,7 +215,6 @@ void Flitzi::enviromentMapping(){
         updateFieldProbably(curAngle, k,-1);
     }
     curAngle = nextServoPos(5);
-    //tmp++;
   } while (scanReverse == false);
 };
 
@@ -227,18 +225,18 @@ void Flitzi::enviromentMapping(){
     Serial.print("{");
     do {
       Serial.print(String(getDistance()) + ", ");
-      //delay(200);
+      delay(200);
       moveServo(nextServoPos(5));
 
     }while (scanReverse ==false);
 
-    Serial.println("1000}");
+    Serial.println(F("1000}"));
 }
 #endif
 
-#ifndef __AVR__
-Flitzi::rgb Flitzi::getColor(int value){
+Flitzi::rgb Flitzi::getColor(char value){
   rgb rgbVal;
+
   switch (value) {
     case -7 : {rgbVal.red = 0; rgbVal.green=165; rgbVal.blue=0; break;}
     case -6 : {rgbVal.red = 0; rgbVal.green=180; rgbVal.blue=0; break;}
@@ -258,21 +256,24 @@ Flitzi::rgb Flitzi::getColor(int value){
     default : {rgbVal.red = 0; rgbVal.green=0; rgbVal.blue=0; break;}
   }
 
-
   return rgbVal;
 }
 
-
-
 void Flitzi::visualiseArray() {
-  //envMap[0][0].nib_00= -7;
-  //envMap[2][3].nib_11 =-7;
-  //updateFieldProbably(90, 17, 7);
-  //updateFieldProbably(170, 26, 4);
+  #ifndef __AVR__
     FILE *f = fopen("out.ppm", "wb");
     fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
-  for (int y= (MAPSIZE *2) -1; y >= 0 ; y--) {
-      for (int x=0 ;x <= (MAPSIZE * 2) -1; x++) {
+  #endif
+
+  #ifdef __AVR__
+    showAtDisplay(F("Send data..."));
+    Serial.println(F("P3 "));
+    Serial.println(F("40 40"));
+    Serial.println(F("255"));
+  #endif
+
+  for (char y= (MAPSIZE *2) -1; y >= 0 ; y--) {
+      for (char x=0 ;x <= (MAPSIZE * 2) -1; x++) {
         rgb curColor = getColor(0);
           //y and x even
           if ( y % 2 == 0 &&  x % 2 == 0)  {
@@ -291,16 +292,37 @@ void Flitzi::visualiseArray() {
             curColor = getColor(envMap[x/2][y/2].nib_11);
           }
 
-          fputc(curColor.red, f);   // 0 .. 255 RED
-          fputc(curColor.green, f); // 0 .. 255 GREEN
-          fputc(curColor.blue, f);  // 0 .. 255 BLUE
+          #ifndef __AVR__
+            fputc(curColor.red, f);   // 0 .. 255 RED
+            fputc(curColor.green, f); // 0 .. 255 GREEN
+            fputc(curColor.blue, f);  // 0 .. 255 BLUE
+          #endif
+
+          #ifdef __AVR__
+          Serial.print(curColor.red);   // 0 .. 255 RED
+          Serial.print(" ");
+          Serial.print(curColor.green); // 0 .. 255 GREEN
+          Serial.print(" ");
+          Serial.print(curColor.blue);
+          Serial.print("   ");  // 0 .. 255 BLUE
+          //delay(20);
+          //  line = line + String(curColor.red) + " " + String(curColor.green) + " " + String(curColor.blue) + "   ";
+          #endif
      }
 
+    #ifdef __AVR__
+      Serial.println(F(""));
+    #endif
+
       }
-      fclose(f);
+      #ifndef __AVR__
+        fclose(f);
+      #endif
+
+      showAtDisplay(F("done!"));
   }
 
-  #endif
+
 
 
 void Flitzi::setEnvMapVal(div_t x, div_t y, byte val) {
@@ -391,8 +413,8 @@ void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVa
       }
 
       default: {
-        float x =  cos(sensorAngle * PI / 180) * dist + curPose.x;
-        float y = sin(sensorAngle * PI / 180) * dist + curPose.y;
+        byte x = floor (cos(sensorAngle * PI / 180) * dist + curPose.x);
+        byte y = floor (sin(sensorAngle * PI / 180) * dist + curPose.y);
               //std::cout << "x: " << x  << "y: " << y << " \n";
 
         char oldVal = getEnvMapVal(div(x, 4), div(y, 4));
@@ -400,7 +422,6 @@ void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVa
         //std::cout << "oldval: " << (int) oldVal;
         setEnvMapVal(div(x, 4), div(y, 4), oldVal);
       }
-
     }
 }
 
