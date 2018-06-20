@@ -21,7 +21,7 @@
 
 #define MAPSIZE 20
 #define RESOLUTION 2
-#define MEASURINGANGLE 30
+#define MEASURINGANGLE 16
 #define ROBOTLENGHT 20
 #define ROBOTBREADTH 10
 
@@ -70,6 +70,13 @@ private:
     byte green;
     byte blue;
   };
+
+  struct arrayPos {
+    byte x : 6;
+    byte y : 6;
+    byte nib : 2;
+  };
+
   rgb getColor(char value);
 
   void setEnvMapVal(div_t x, div_t y, byte val);

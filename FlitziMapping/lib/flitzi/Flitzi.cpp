@@ -189,11 +189,10 @@ void Flitzi::enviromentMapping(){
     moveServo(curAngle);
     dist=getDistance();
     //obstacles
-
   //  consider ultrasonic measuring angle
 
     if (curAngle > 15 && curAngle < 165) {
-      for (byte a=1; a <= MEASURINGANGLE/2; a++ ) {
+      for (byte a=0; a <= MEASURINGANGLE/2; a++ ) {
           updateFieldProbably(curAngle -a, dist,1);
           updateFieldProbably(curAngle +a, dist,1);
           //delay(2000);
@@ -201,22 +200,23 @@ void Flitzi::enviromentMapping(){
         }
       }
 
-        updateFieldProbably(curAngle, dist,1);
+        //updateFieldProbably(curAngle, dist,1);
 
     //freefieldS
+
     for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
     //   consider ultrasonic measuring angle
-
       if (curAngle > 15 && curAngle < 165) {
-        for (byte a=1; a <= MEASURINGANGLE/2; a++ ) {
+        for (byte a=0; a <= MEASURINGANGLE/2; a++ ) {
             updateFieldProbably(curAngle -a, k,-1);
             updateFieldProbably(curAngle +a, k,-1);
       }
+      //visualiseArray();
+      //delay(2000);
     }
-
-
         //updateFieldProbably(curAngle, k,-1);
     }
+
     curAngle = nextServoPos(5);
   } while (scanReverse == false);
 };
@@ -327,9 +327,6 @@ void Flitzi::visualiseArray() {
 
   }
 
-
-
-
 void Flitzi::setEnvMapVal(div_t x, div_t y, byte val) {
  //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
   if (!(x.quot < 0 or x.quot >= MAPSIZE ) and !(y.quot < 0 or y.quot >= MAPSIZE)) {
@@ -377,53 +374,38 @@ byte Flitzi::getEnvMapVal(div_t x, div_t y) {
   }
 }
 
-void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVal ){
+void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVal){
   //std::cout << "sensorAngle: " << (int) sensorAngle << "\n";
   switch (sensorAngle) {
     case 0: {
-      /*
-      if (dist + curPose.x >= MAPSIZE * RESOLUTION * 2) {
-        dist = MAPSIZE * RESOLUTION * 2 - curPose.x -1;
-      }
-      */
       char oldVal = getEnvMapVal(div(curPose.x + dist, 4), div(curPose.y, 4));
-      if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+      if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
       setEnvMapVal(div(dist + curPose.x, 4), div(curPose.y, 4), oldVal);
       break;
       }
 
     case 90: {
-      /*
-      if (dist + curPose.y >= MAPSIZE * RESOLUTION * 2) {
-        dist = MAPSIZE * RESOLUTION * 2 - curPose.y -1;
-              }
-      */
       char oldVal = getEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4));
-      if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+      if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
       setEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4), oldVal);
       break;
       }
 
 
     case 180: {
-      /*
-      if (curPose.x - dist < 0) {
-        dist = curPose.x;
-              }
-      */
       byte oldVal = getEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4));
-      if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+      if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
       setEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4), oldVal);
       break;
       }
 
       default: {
-        byte x = floor (cos(sensorAngle * PI / 180) * dist + curPose.x);
-        byte y = floor (sin(sensorAngle * PI / 180) * dist + curPose.y);
+        byte x = round (cos(sensorAngle * PI / 180) * dist + curPose.x);
+        byte y = round (sin(sensorAngle * PI / 180) * dist + curPose.y);
               //std::cout << "x: " << x  << "y: " << y << " \n";
 
         char oldVal = getEnvMapVal(div(x, 4), div(y, 4));
-        if (oldVal > -7 && oldVal < 7) oldVal = oldVal + alternationVal;
+        if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
         //std::cout << "oldval: " << (int) oldVal;
         setEnvMapVal(div(x, 4), div(y, 4), oldVal);
       }
