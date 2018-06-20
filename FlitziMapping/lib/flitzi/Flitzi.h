@@ -15,9 +15,10 @@
     #include <unistd.h>
     #include <ServoSim.h>
     #include <UltrasonicSim.h>
+    #define PI 3.14159265
 #endif
 
-//#define PI 3.14159265
+
 #define MAPSIZE 20
 #define RESOLUTION 2
 #define MEASURINGANGLE 30
@@ -89,19 +90,35 @@ private:
   };
 
 
+  #ifdef __AVR__
+    static const byte PIN_ENA PROGMEM=0;
+    static const byte PIN_ENB PROGMEM =1;
+    static const byte PIN_IN1 PROGMEM =3; //HIGH -> forward
+    static const byte PIN_IN2 PROGMEM =5; //PWM
+    static const byte PIN_IN3 PROGMEM =9; //LOW -> Back
+    static const byte PIN_IN4 PROGMEM =6; //PWM
+    static const byte servoForward PROGMEM = 87;
+    static const byte numbertwo PROGMEM = 2;
+  #endif
 
-  static const byte PIN_ENA PROGMEM=0;
-  static const byte PIN_ENB PROGMEM =1;
-  static const byte PIN_IN1 PROGMEM =3; //HIGH -> forward
-  static const byte PIN_IN2 PROGMEM =5; //PWM
-  static const byte PIN_IN3 PROGMEM =9; //LOW -> Back
-  static const byte PIN_IN4 PROGMEM =6; //PWM
-  static const byte servoForward PROGMEM = 87;
-  static const byte numbertwo PROGMEM = 2;
+  #ifndef __AVR__
+    static const byte PIN_ENA=0;
+    static const byte PIN_ENB=1;
+    static const byte PIN_IN1=3; //HIGH -> forward
+    static const byte PIN_IN2=5; //PWM
+    static const byte PIN_IN3=9; //LOW -> Back
+    static const byte PIN_IN4=6; //PWM
+    static const byte servoForward= 87;
+    static const byte numbertwo= 2;
+  #endif
+
+
+
+
+
   byte curDist;
   //"normal" scan is antiClockwise,(0° to 180°). Reverse scan is the opposite
   boolean scanReverse = false;
   envPoint envMap [MAPSIZE][MAPSIZE];
   pose curPose;
-  String str="";
 };

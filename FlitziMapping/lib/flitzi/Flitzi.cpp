@@ -212,7 +212,6 @@ void Flitzi::enviromentMapping(){
             updateFieldProbably(curAngle -a, k,-1);
             updateFieldProbably(curAngle +a, k,-1);
       }
-      Serial.read();
     }
 
 
@@ -249,36 +248,15 @@ Flitzi::rgb Flitzi::getColor(char value){
 
   if (value < 0) {
     rgbVal.red = 0;
-    rgbVal.green = (255 - ((value-1) * 15));
+    rgbVal.green = (255 + ((value+1) * 15));
     rgbVal.blue = 0;
   }
 
-  if (value = 0) {
+  if (value == 0) {
     rgbVal.red = 125;
     rgbVal.green = 125;
     rgbVal.blue = 125;
   }
-
-/*
-  switch (value) {
-    case -7 : {rgbVal.red = 0; rgbVal.green=165; rgbVal.blue=0; break;}
-    case -6 : {rgbVal.red = 0; rgbVal.green=180; rgbVal.blue=0; break;}
-    case -5 : {rgbVal.red = 0; rgbVal.green=119; rgbVal.blue=0; break;}
-    case -4 : {rgbVal.red = 0; rgbVal.green=210; rgbVal.blue=0; break;}
-    case -3 : {rgbVal.red = 0; rgbVal.green=225; rgbVal.blue=0; break;}
-    case -2 : {rgbVal.red = 0; rgbVal.green=240; rgbVal.blue=0; break;}
-    case -1 : {rgbVal.red = 0; rgbVal.green=255; rgbVal.blue=0; break;}
-    case 0 : {rgbVal.red = 125; rgbVal.green=125; rgbVal.blue=125; break;}
-    case 1 : {rgbVal.red = 255; rgbVal.green=0; rgbVal.blue=0; break;}
-    case 2 : {rgbVal.red = 240; rgbVal.green=0; rgbVal.blue=0; break;}
-    case 3 : {rgbVal.red = 225; rgbVal.green=0; rgbVal.blue=0; break;}
-    case 4 : {rgbVal.red = 210; rgbVal.green=0; rgbVal.blue=0; break;}
-    case 5 : {rgbVal.red = 119; rgbVal.green=0; rgbVal.blue=0; break;}
-    case 6 : {rgbVal.red = 180; rgbVal.green=0; rgbVal.blue=0; break;}
-    case 7 : {rgbVal.red = 165; rgbVal.green=0; rgbVal.blue=0; break;}
-    default : {rgbVal.red = 0; rgbVal.green=0; rgbVal.blue=0; break;}
-  }
-  */
 
   return rgbVal;
 }
@@ -343,7 +321,10 @@ void Flitzi::visualiseArray() {
         fclose(f);
       #endif
 
-      showAtDisplay(F("done!"));
+      #ifdef __AVR__
+        showAtDisplay(F("done!"));
+      #endif
+
   }
 
 
