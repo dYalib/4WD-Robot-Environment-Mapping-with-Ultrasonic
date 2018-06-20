@@ -24,12 +24,18 @@ Flitzi robi;
 
 void setup() {
   #ifdef __AVR__
+
     robi.init();
+    //robi.paintOnDisplay();
     robi.moveServo(0);
     delay(3000);
     robi.enviromentMapping();
+    robi.paintOnDisplay();
+    robi.visualiseArray();
+    /*
     delay(5000);
     robi.visualiseArray();
+    */
   #endif
 
   #ifndef __AVR__

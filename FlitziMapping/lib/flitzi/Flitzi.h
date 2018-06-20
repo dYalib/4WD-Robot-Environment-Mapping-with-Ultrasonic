@@ -55,8 +55,8 @@ public:
   //int scanEnviroment(byte ServoPos);
   byte nextServoPos(byte step);
   void enviromentMapping();
-    void setFieldOfRobot();
-
+  void setFieldOfRobot();
+  void paintOnDisplay();
 
 
 private:
@@ -103,7 +103,6 @@ private:
     byte x;
     byte y;
   };
-
 
   #ifdef __AVR__
     static const byte PIN_ENA PROGMEM=0;

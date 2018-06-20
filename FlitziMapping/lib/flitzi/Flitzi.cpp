@@ -274,7 +274,6 @@ void Flitzi::visualiseArray() {
   #endif
 
   #ifdef __AVR__
-    showAtDisplay(F("Send data..."));
     Serial.println(F("P3 "));
     Serial.println(F("40 40"));
     Serial.println(F("255"));
@@ -433,4 +432,34 @@ void Flitzi::setFieldOfRobot(){
       setEnvMapVal(getArrayPos(div (curPose.x -x ,4), div (curPose.y - y, 4)), -7);
     }
   }
+}
+
+
+void Flitzi::paintOnDisplay() {
+  display.clearDisplay();
+
+  display.drawPixel(1,1,1);
+
+  for (char y= (MAPSIZE *2) -8; y >= 0 ; y--) {
+      for (char x=0 ;x <= (MAPSIZE * 2) -1; x++) {
+        if ( y % 2 == 0 &&  x % 2 == 0)  {
+          if (envMap[x/2][y/2].nib_00 > 0) display.drawPixel(24 + 2*x ,32-y ,1);
+        }
+        //y even and x odd
+        if ( y % 2 == 0 &&  x % 2 != 0)  {
+          if (envMap[x/2][y/2].nib_10 > 0 ) display.drawPixel(24 + 2*x ,32-y ,1);
+        }
+        //y odd and x even
+        if ( y % 2 != 0 &&  x % 2 == 0)  {
+          if (envMap[x/2][y/2].nib_01 > 0 ) display.drawPixel(24 + 2*x ,32-y ,1);
+        }
+        //y and x odd
+        if ( y % 2 != 0 &&  x % 2 != 0)  {
+          if (envMap[x/2][y/2].nib_11 > 0 ) display.drawPixel(24 + 2*x ,32-y ,1) ;
+        }
+
+    }
+    }
+  display.display();
+
 }
