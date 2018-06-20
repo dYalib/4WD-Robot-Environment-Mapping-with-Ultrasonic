@@ -22,6 +22,7 @@ Flitzi::Flitzi() {
   setFieldOfRobot();
 }
 
+
 #ifndef __AVR__
   void Flitzi::delay(unsigned int ms) {
     usleep(ms * 1000);
@@ -156,15 +157,6 @@ byte Flitzi::getDistance() {
   return (normDist);
 }
 
-/*
-int Flitzi::scanEnviroment(byte ServoPos) {
-  moveServo(ServoPos);
-  int val = getDistance();
-  showAtDisplay(String(val));
-  return val;
-}
-*/
-
 byte Flitzi::nextServoPos(byte step) {
 int newPos = 0;
   if (scanReverse == true) {
@@ -188,34 +180,32 @@ void Flitzi::enviromentMapping(){
   do {
     moveServo(curAngle);
     dist=getDistance();
-    //obstacles
+    arrayPos oldPos;
+
+  //obstacles
   //  consider ultrasonic measuring angle
-
     if (curAngle > 15 && curAngle < 165) {
-      for (byte a=0; a <= MEASURINGANGLE/2; a++ ) {
-          updateFieldProbably(curAngle -a, dist,1);
-          updateFieldProbably(curAngle +a, dist,1);
-          //delay(2000);
-          //visualiseArray();
-        }
-      }
+      for (byte a=0; a <= MEASURINGANGLE; a++ ) {
 
-        //updateFieldProbably(curAngle, dist,1);
+           if (trigonom(curAngle - MEASURINGANGLE/2 + a, dist) != oldPos) {
+              updateFieldProbably(trigonom(curAngle - MEASURINGANGLE/2 +a, dist),1);
+              oldPos = trigonom(curAngle - MEASURINGANGLE/2 +a, dist);
+          }
+        }
+      };
 
     //freefieldS
-
     for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
     //   consider ultrasonic measuring angle
       if (curAngle > 15 && curAngle < 165) {
-        for (byte a=0; a <= MEASURINGANGLE/2; a++ ) {
-            updateFieldProbably(curAngle -a, k,-1);
-            updateFieldProbably(curAngle +a, k,-1);
+        for (byte a=0; a <= MEASURINGANGLE; a++ ) {
+          if (trigonom(curAngle - MEASURINGANGLE/2 + a, k) != oldPos) {
+             updateFieldProbably(trigonom(curAngle - MEASURINGANGLE/2 +a, k),-1);
+             oldPos = trigonom(curAngle - MEASURINGANGLE/2 +a, k);
+           }
+         }
       }
-      //visualiseArray();
-      //delay(2000);
-    }
-        //updateFieldProbably(curAngle, k,-1);
-    }
+    };
 
     curAngle = nextServoPos(5);
   } while (scanReverse == false);
@@ -327,87 +317,92 @@ void Flitzi::visualiseArray() {
 
   }
 
-void Flitzi::setEnvMapVal(div_t x, div_t y, byte val) {
- //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
-  if (!(x.quot < 0 or x.quot >= MAPSIZE ) and !(y.quot < 0 or y.quot >= MAPSIZE)) {
-    //std::cout << "set!" << '\n';
-    if (x.rem < 2) {
-      if (y.rem < 2) {
-        envMap[x.quot][y.quot].nib_00 = val;
-      }
-      else {
-        envMap[x.quot][y.quot].nib_01 = val;
-      }
-    }
-    else {
-      if (y.rem < 2) {
-        envMap[x.quot][y.quot].nib_10 = val;
-      }
-      else {
-        envMap[x.quot][y.quot].nib_11 = val;
-      }
-    }
-  }
-}
+Flitzi::arrayPos Flitzi::getArrayPos(div_t x, div_t y) {
+  arrayPos curArrayPos;
 
-byte Flitzi::getEnvMapVal(div_t x, div_t y) {
-  //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
   if ((x.quot < 0 or x.quot >= MAPSIZE ) or (y.quot < 0 or y.quot >= MAPSIZE)) {
-    return 0;
+    curArrayPos.x = 255;
+    curArrayPos.y = 255;
+    curArrayPos.nib = 255;
+    //std::cout << "x: " << (int) curArrayPos.x  << " y: " << (int) curArrayPos.y << " nib: " << (int)curArrayPos.nib << "\n";
+    return curArrayPos;
   }
-  //std::cout << "get!" << '\n';
+  curArrayPos.x =x.quot;
+  curArrayPos.y = y.quot;
   if (x.rem < 2) {
     if (y.rem < 2) {
-      return envMap[x.quot][y.quot].nib_00;
+      curArrayPos.nib=0;
     }
     else {
-      return envMap[x.quot][y.quot].nib_01;
+      curArrayPos.nib=1;
     }
   }
   else {
     if (y.rem < 2) {
-      return envMap[x.quot][y.quot].nib_10;
+      curArrayPos.nib=2;
     }
     else {
-      return envMap[x.quot][y.quot].nib_11;
+      curArrayPos.nib=3;
+    }
+  }
+  return curArrayPos;
+}
+
+void Flitzi::setEnvMapVal(arrayPos curArrayPos, byte val) {
+ //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
+  if (!(curArrayPos.x == 255 or curArrayPos.y == 255 or curArrayPos.nib==255)){
+    switch (curArrayPos.nib) {
+      case 0 : envMap[curArrayPos.x][curArrayPos.y].nib_00 = val; break;
+      case 1 : envMap[curArrayPos.x][curArrayPos.y].nib_01 = val; break;
+      case 2 : envMap[curArrayPos.x][curArrayPos.y].nib_10 = val; break;
+      case 3 : envMap[curArrayPos.x][curArrayPos.y].nib_11 = val; break;
     }
   }
 }
 
-void Flitzi::updateFieldProbably(byte sensorAngle, byte dist, char alternationVal){
+byte Flitzi::getEnvMapVal(arrayPos curArrayPos) {
+  //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
+  if (!(curArrayPos.x == 255 or curArrayPos.y == 255 or curArrayPos.nib==255)){
+    switch (curArrayPos.nib) {
+      case 0 : return envMap[curArrayPos.x][curArrayPos.y].nib_00; break;
+      case 1 : return envMap[curArrayPos.x][curArrayPos.y].nib_01; break;
+      case 2 : return envMap[curArrayPos.x][curArrayPos.y].nib_10; break;
+      case 3 : return envMap[curArrayPos.x][curArrayPos.y].nib_11; break;
+    }
+  }
+  return 0;
+}
+
+
+void Flitzi::updateFieldProbably(arrayPos curArrayPos, char alternationVal) {
+  char oldVal = getEnvMapVal(curArrayPos);
+  if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
+  setEnvMapVal(curArrayPos, oldVal);
+}
+
+Flitzi::arrayPos Flitzi::trigonom(byte sensorAngle, byte dist){
   //std::cout << "sensorAngle: " << (int) sensorAngle << "\n";
   switch (sensorAngle) {
     case 0: {
-      char oldVal = getEnvMapVal(div(curPose.x + dist, 4), div(curPose.y, 4));
-      if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
-      setEnvMapVal(div(dist + curPose.x, 4), div(curPose.y, 4), oldVal);
+      return getArrayPos(div(dist + curPose.x, 4), div(curPose.y, 4));
       break;
       }
 
     case 90: {
-      char oldVal = getEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4));
-      if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
-      setEnvMapVal(div(curPose.x, 4), div(curPose.y + dist, 4), oldVal);
+      return getArrayPos(div(curPose.x, 4), div(curPose.y + dist, 4));
       break;
       }
 
 
     case 180: {
-      byte oldVal = getEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4));
-      if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
-      setEnvMapVal(div(curPose.x - dist, 4), div(curPose.y, 4), oldVal);
+      return getArrayPos(div(curPose.x - dist, 4), div(curPose.y, 4));
       break;
       }
 
-      default: {
+    default: {
         byte x = round (cos(sensorAngle * PI / 180) * dist + curPose.x);
         byte y = round (sin(sensorAngle * PI / 180) * dist + curPose.y);
-              //std::cout << "x: " << x  << "y: " << y << " \n";
-
-        char oldVal = getEnvMapVal(div(x, 4), div(y, 4));
-        if (oldVal + alternationVal >=-7 and oldVal + alternationVal <= 7) oldVal = oldVal + alternationVal;
-        //std::cout << "oldval: " << (int) oldVal;
-        setEnvMapVal(div(x, 4), div(y, 4), oldVal);
+        return getArrayPos(div(x, 4), div(y, 4));
       }
     }
 }
@@ -417,8 +412,8 @@ void Flitzi::setFieldOfRobot(){
 //TODO: Check Valid Robot Pos!
   for (byte x=0;x < ROBOTBREADTH / 2; x++){
     for (byte y=0; y < ROBOTLENGHT; y++) {
-      setEnvMapVal(div (curPose.x + x,4), div (curPose.y - y, 4), -7);
-      setEnvMapVal(div (curPose.x -x ,4), div (curPose.y - y, 4), -7);
+      setEnvMapVal(getArrayPos(div (curPose.x + x,4), div (curPose.y - y, 4)), -7);
+      setEnvMapVal(getArrayPos(div (curPose.x -x ,4), div (curPose.y - y, 4)), -7);
     }
   }
 }

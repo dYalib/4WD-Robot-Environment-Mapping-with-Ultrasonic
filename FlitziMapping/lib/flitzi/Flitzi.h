@@ -72,16 +72,21 @@ private:
   };
 
   struct arrayPos {
-    byte x : 6;
-    byte y : 6;
-    byte nib : 2;
+    byte x;
+    byte y;
+    byte nib;
+
+    bool operator!=(arrayPos& other) {
+      return x != other.x || y != other.y || nib != other.nib;
+    }
   };
 
   rgb getColor(char value);
-
-  void setEnvMapVal(div_t x, div_t y, byte val);
-  byte getEnvMapVal(div_t x, div_t y);
-  void updateFieldProbably(unsigned char sensorAngle, byte dist,char alternationVal);
+  arrayPos getArrayPos(div_t x, div_t y);
+  void setEnvMapVal(arrayPos curArrayPos, byte val);
+  byte getEnvMapVal(arrayPos curArrayPos);
+  void updateFieldProbably(arrayPos curArrayPos, char alternationVal);
+  arrayPos trigonom(byte sensorAngle, byte dist);
   void setFieldOfRobot();
 
   struct envPoint {
