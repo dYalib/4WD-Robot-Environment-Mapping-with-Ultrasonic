@@ -16,6 +16,7 @@
     #include <ServoSim.h>
     #include <UltrasonicSim.h>
     #define PI 3.14159265
+    #include <string>
 #endif
 
 
@@ -46,6 +47,7 @@ public:
 
 
   void move (int powerLeft, int powerRight);
+  void move (int cm);
   void stop();
   void turn (int degree);
   void moveServo( byte servoPos);
@@ -53,6 +55,7 @@ public:
   //int scanEnviroment(byte ServoPos);
   byte nextServoPos(byte step);
   void enviromentMapping();
+    void setFieldOfRobot();
 
 
 
@@ -88,7 +91,6 @@ private:
   byte getEnvMapVal(arrayPos curArrayPos);
   void updateFieldProbably(arrayPos curArrayPos, char alternationVal);
   arrayPos trigonom(int sensorAngle, byte dist);
-  void setFieldOfRobot();
 
   struct envPoint {
     char nib_00 : 4;

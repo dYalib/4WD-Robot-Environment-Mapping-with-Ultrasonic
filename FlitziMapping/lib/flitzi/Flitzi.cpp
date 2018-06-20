@@ -69,6 +69,12 @@ void Flitzi::move (int powerLeft, int powerRight) {
 
 }
 
+void Flitzi::move(int cm) {
+  move(125,125);
+  delay(1000);
+  curPose.y = curPose.y + cm;
+}
+
 
 void Flitzi::stop(){
   move(0,0);
@@ -147,8 +153,9 @@ byte Flitzi::getDistance() {
     #endif
   }
 
-  if (normDist == 0) normDist=255;
   normDist = normDist / 10;
+  if (normDist > 255 || normDist==0) normDist=255;
+
   #ifdef __AVR__
     //Serial.println("Dist:" + String(normDist / 10));
     showAtDisplay(String(normDist));
@@ -194,6 +201,10 @@ void Flitzi::enviromentMapping(){
       //  }
       };
 
+      /*
+      visualiseArray();
+      delay(1000);
+      */
     //freefieldS
 
     for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
@@ -253,7 +264,12 @@ Flitzi::rgb Flitzi::getColor(char value){
 
 void Flitzi::visualiseArray() {
   #ifndef __AVR__
-    FILE *f = fopen("out.ppm", "wb");
+    std::string name("out");
+    name.append(std::to_string(curPose.x));
+    name.append(std::to_string(curPose.y));
+    name.append(".ppm");
+    //name = std::string("out") + std::string(rand() % 100) + std::string(".ppm");
+    FILE *f = fopen(name.c_str(), "wb");
     fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
   #endif
 
@@ -320,7 +336,7 @@ void Flitzi::visualiseArray() {
 Flitzi::arrayPos Flitzi::getArrayPos(div_t x, div_t y) {
   arrayPos curArrayPos;
 
-  if ((x.quot < 0 or x.quot >= MAPSIZE ) or (y.quot < 0 or y.quot >= MAPSIZE)) {
+  if (x.quot < 0 || x.quot >= MAPSIZE  || y.quot < 0 || y.quot >= MAPSIZE) {
     curArrayPos.x = 255;
     curArrayPos.y = 255;
     curArrayPos.nib = 255;
@@ -351,6 +367,7 @@ Flitzi::arrayPos Flitzi::getArrayPos(div_t x, div_t y) {
 void Flitzi::setEnvMapVal(arrayPos curArrayPos, byte val) {
  //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
   if (!(curArrayPos.x == 255 or curArrayPos.y == 255 or curArrayPos.nib==255)){
+    //std::cout << "---- x: " << (int) curArrayPos.x << " y: " << (int) curArrayPos.y << "-----" "\n";
     switch (curArrayPos.nib) {
       case 0 : envMap[curArrayPos.x][curArrayPos.y].nib_00 = val; break;
       case 1 : envMap[curArrayPos.x][curArrayPos.y].nib_01 = val; break;
@@ -400,8 +417,8 @@ Flitzi::arrayPos Flitzi::trigonom(int sensorAngle, byte dist){
       }
 
     default: {
-        byte x = round (cos(sensorAngle * PI / 180) * dist +  curPose.x  + cos(sensorAngle * PI / 180) * ROBOT_US_GAP);
-        byte y = round (sin(sensorAngle * PI / 180) * dist + curPose.y + (-1 *ROBOT_US_GAP) + sin(sensorAngle * PI / 180) * ROBOT_US_GAP);
+        unsigned int x = round (cos(sensorAngle * PI / 180) * dist +  curPose.x  + cos(sensorAngle * PI / 180) * ROBOT_US_GAP);
+         unsigned int y = round (sin(sensorAngle * PI / 180) * dist + curPose.y + (-1 *ROBOT_US_GAP) + sin(sensorAngle * PI / 180) * ROBOT_US_GAP);
         return getArrayPos(div(x, 4), div(y, 4));
       }
     }

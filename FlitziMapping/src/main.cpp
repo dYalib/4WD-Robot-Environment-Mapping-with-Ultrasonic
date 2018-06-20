@@ -35,6 +35,10 @@ void setup() {
   #ifndef __AVR__
     robi.enviromentMapping();
     robi.visualiseArray();
+    robi.move(10);
+    robi.setFieldOfRobot();
+    robi.enviromentMapping();
+    robi.visualiseArray();
   #endif
   //robi.generateSimulationData();
   //robi.generateSimulationData();
