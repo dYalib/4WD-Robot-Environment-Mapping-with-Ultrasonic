@@ -184,29 +184,29 @@ void Flitzi::enviromentMapping(){
 
   //obstacles
   //  consider ultrasonic measuring angle
-    if (curAngle > 15 && curAngle < 165) {
+    //if (curAngle > 15 && curAngle < 165) {
       for (byte a=0; a <= MEASURINGANGLE; a++ ) {
 
            if (trigonom(curAngle - MEASURINGANGLE/2 + a, dist) != oldPos) {
               updateFieldProbably(trigonom(curAngle - MEASURINGANGLE/2 +a, dist),1);
               oldPos = trigonom(curAngle - MEASURINGANGLE/2 +a, dist);
           }
-        }
+      //  }
       };
 
     //freefieldS
+
     for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
     //   consider ultrasonic measuring angle
-      if (curAngle > 15 && curAngle < 165) {
+      //if (curAngle > 15 && curAngle < 165) {
         for (byte a=0; a <= MEASURINGANGLE; a++ ) {
           if (trigonom(curAngle - MEASURINGANGLE/2 + a, k) != oldPos) {
              updateFieldProbably(trigonom(curAngle - MEASURINGANGLE/2 +a, k),-1);
              oldPos = trigonom(curAngle - MEASURINGANGLE/2 +a, k);
            }
-         }
+        // }
       }
     };
-
     curAngle = nextServoPos(5);
   } while (scanReverse == false);
 };
@@ -380,11 +380,11 @@ void Flitzi::updateFieldProbably(arrayPos curArrayPos, char alternationVal) {
   setEnvMapVal(curArrayPos, oldVal);
 }
 
-Flitzi::arrayPos Flitzi::trigonom(byte sensorAngle, byte dist){
+Flitzi::arrayPos Flitzi::trigonom(int sensorAngle, byte dist){
   //std::cout << "sensorAngle: " << (int) sensorAngle << "\n";
   switch (sensorAngle) {
     case 0: {
-      return getArrayPos(div(dist + curPose.x, 4), div(curPose.y, 4));
+      return getArrayPos(div(dist + curPose.x + ROBOT_US_GAP , 4), div(curPose.y -ROBOT_US_GAP, 4));
       break;
       }
 
@@ -395,13 +395,13 @@ Flitzi::arrayPos Flitzi::trigonom(byte sensorAngle, byte dist){
 
 
     case 180: {
-      return getArrayPos(div(curPose.x - dist, 4), div(curPose.y, 4));
+      return getArrayPos(div(curPose.x - ROBOT_US_GAP - dist, 4), div(curPose.y - ROBOT_US_GAP , 4));
       break;
       }
 
     default: {
-        byte x = round (cos(sensorAngle * PI / 180) * dist + curPose.x);
-        byte y = round (sin(sensorAngle * PI / 180) * dist + curPose.y);
+        byte x = round (cos(sensorAngle * PI / 180) * dist +  curPose.x  + cos(sensorAngle * PI / 180) * ROBOT_US_GAP);
+        byte y = round (sin(sensorAngle * PI / 180) * dist + curPose.y + (-1 *ROBOT_US_GAP) + sin(sensorAngle * PI / 180) * ROBOT_US_GAP);
         return getArrayPos(div(x, 4), div(y, 4));
       }
     }

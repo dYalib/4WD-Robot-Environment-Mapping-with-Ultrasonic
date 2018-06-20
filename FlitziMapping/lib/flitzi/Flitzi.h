@@ -24,6 +24,7 @@
 #define MEASURINGANGLE 16
 #define ROBOTLENGHT 20
 #define ROBOTBREADTH 10
+#define ROBOT_US_GAP 2
 
 
 
@@ -86,7 +87,7 @@ private:
   void setEnvMapVal(arrayPos curArrayPos, byte val);
   byte getEnvMapVal(arrayPos curArrayPos);
   void updateFieldProbably(arrayPos curArrayPos, char alternationVal);
-  arrayPos trigonom(byte sensorAngle, byte dist);
+  arrayPos trigonom(int sensorAngle, byte dist);
   void setFieldOfRobot();
 
   struct envPoint {
