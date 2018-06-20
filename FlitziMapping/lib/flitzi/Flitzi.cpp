@@ -38,7 +38,8 @@ Flitzi::Flitzi() {
     display.setTextColor(WHITE);
     display.setCursor(5,0);
     //servo range is 180° to 20°. Thats a mechanical issue.
-    servo.attach(7,750,2400);
+    //servo.attach(7,750,2400);
+    servo.attach(7);
     moveServo(servoForward);
 }
 #endif
@@ -119,7 +120,7 @@ void Flitzi::moveServo( byte servoPos){
 
 #ifdef __AVR__
 void Flitzi::showAtDisplay(String txt) {
-  Serial.println(txt);
+  //Serial.println(txt);
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -189,30 +190,33 @@ void Flitzi::enviromentMapping(){
     dist=getDistance();
     //obstacles
 
-    /* consider ultrasonic measuring angle
+  //  consider ultrasonic measuring angle
+
     if (curAngle > 15 && curAngle < 165) {
-      for (int a=1; a <= MEASURINGANGLE/2; a++ ) {
+      for (byte a=1; a <= MEASURINGANGLE/2; a++ ) {
           updateFieldProbably(curAngle -a, dist,1);
           updateFieldProbably(curAngle +a, dist,1);
           //delay(2000);
           //visualiseArray();
         }
       }
-      */
-    updateFieldProbably(curAngle, dist,1);
 
+        updateFieldProbably(curAngle, dist,1);
 
     //freefieldS
     for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
-      /* consider ultrasonic measuring angle
+    //   consider ultrasonic measuring angle
+
       if (curAngle > 15 && curAngle < 165) {
-        for (int a=1; a <= MEASURINGANGLE/2; a++ ) {
+        for (byte a=1; a <= MEASURINGANGLE/2; a++ ) {
             updateFieldProbably(curAngle -a, k,-1);
             updateFieldProbably(curAngle +a, k,-1);
       }
+      Serial.read();
     }
-    */
-        updateFieldProbably(curAngle, k,-1);
+
+
+        //updateFieldProbably(curAngle, k,-1);
     }
     curAngle = nextServoPos(5);
   } while (scanReverse == false);
@@ -237,6 +241,25 @@ void Flitzi::enviromentMapping(){
 Flitzi::rgb Flitzi::getColor(char value){
   rgb rgbVal;
 
+  if (value > 0) {
+    rgbVal.red = (255 - ((value-1) * 15));
+    rgbVal.green = 0;
+    rgbVal.blue = 0;
+  }
+
+  if (value < 0) {
+    rgbVal.red = 0;
+    rgbVal.green = (255 - ((value-1) * 15));
+    rgbVal.blue = 0;
+  }
+
+  if (value = 0) {
+    rgbVal.red = 125;
+    rgbVal.green = 125;
+    rgbVal.blue = 125;
+  }
+
+/*
   switch (value) {
     case -7 : {rgbVal.red = 0; rgbVal.green=165; rgbVal.blue=0; break;}
     case -6 : {rgbVal.red = 0; rgbVal.green=180; rgbVal.blue=0; break;}
@@ -255,6 +278,7 @@ Flitzi::rgb Flitzi::getColor(char value){
     case 7 : {rgbVal.red = 165; rgbVal.green=0; rgbVal.blue=0; break;}
     default : {rgbVal.red = 0; rgbVal.green=0; rgbVal.blue=0; break;}
   }
+  */
 
   return rgbVal;
 }

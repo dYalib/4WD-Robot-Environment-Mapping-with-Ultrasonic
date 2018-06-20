@@ -28,6 +28,7 @@ void setup() {
     robi.moveServo(0);
     delay(3000);
     robi.enviromentMapping();
+    delay(5000);
     robi.visualiseArray();
   #endif
 
@@ -41,6 +42,7 @@ void setup() {
 }
 
 void loop() {
+  /*
   i = robi.nextServoPos(5);
   robi.moveServo(i);
   d = robi.getDistance();
@@ -51,7 +53,7 @@ void loop() {
   #ifndef __AVR__
     std::cout << "Dist: " << d << "\n";
   #endif
-
+*/
 }
 
 #ifndef __AVR__
