@@ -43,6 +43,7 @@ public:
     void init();
     void showAtDisplay(String txt);
     void generateSimulationData();
+    void paintOnDisplay();
   #endif
 
 
@@ -52,21 +53,20 @@ public:
   void turn (int degree);
   void moveServo( byte servoPos);
   byte getDistance();
-  //int scanEnviroment(byte ServoPos);
   byte nextServoPos(byte step);
   void enviromentMapping();
   void setFieldOfRobot();
-  void paintOnDisplay();
 
 
 private:
+  #ifdef __AVR__
+    Servo servo;
+  #endif
+
   #ifndef __AVR__
     void delay(unsigned int ms);
     ServoSim servo;
-  #endif
-
-  #ifdef __AVR__
-    Servo servo;
+    bool haseMoved=false;
   #endif
 
   struct rgb {
@@ -85,13 +85,6 @@ private:
     }
   };
 
-  rgb getColor(char value);
-  arrayPos getArrayPos(div_t x, div_t y);
-  void setEnvMapVal(arrayPos curArrayPos, byte val);
-  byte getEnvMapVal(arrayPos curArrayPos);
-  void updateFieldProbably(arrayPos curArrayPos, char alternationVal);
-  arrayPos trigonom(int sensorAngle, byte dist);
-
   struct envPoint {
     char nib_00 : 4;
     char nib_10 : 4;
@@ -103,6 +96,13 @@ private:
     byte x;
     byte y;
   };
+
+  byte curDist;
+  //"normal" scan is antiClockwise,(0° to 180°). Reverse scan is the opposite
+  boolean scanReverse = false;
+  envPoint envMap [MAPSIZE][MAPSIZE];
+  //envPoint envMap [1][1];
+  pose curPose;
 
   #ifdef __AVR__
     static const byte PIN_ENA PROGMEM=0;
@@ -127,12 +127,11 @@ private:
   #endif
 
 
+  rgb getColor(char value);
+  arrayPos getArrayPos(div_t x, div_t y);
+  void setEnvMapVal(arrayPos curArrayPos, byte val);
+  byte getEnvMapVal(arrayPos curArrayPos);
+  void updateFieldProbably(arrayPos curArrayPos, char alternationVal);
+  arrayPos trigonom(int sensorAngle, byte dist);
 
-
-
-  byte curDist;
-  //"normal" scan is antiClockwise,(0° to 180°). Reverse scan is the opposite
-  boolean scanReverse = false;
-  envPoint envMap [MAPSIZE][MAPSIZE];
-  pose curPose;
 };

@@ -5,7 +5,6 @@
   #define XPOS 2
   #define YPOS 1
   #define DELTAY 2
-
   static  Ultrasonic ultrasonic(A2,A3);
   static  Adafruit_SSD1306 display(OLED_RESET);
 #endif
@@ -22,7 +21,6 @@ Flitzi::Flitzi() {
   setFieldOfRobot();
 }
 
-
 #ifndef __AVR__
   void Flitzi::delay(unsigned int ms) {
     usleep(ms * 1000);
@@ -38,8 +36,6 @@ Flitzi::Flitzi() {
     display.setTextSize(2);
     display.setTextColor(WHITE);
     display.setCursor(5,0);
-    //servo range is 180° to 20°. Thats a mechanical issue.
-    //servo.attach(7,750,2400);
     servo.attach(7);
     moveServo(servoForward);
 }
@@ -64,6 +60,7 @@ void Flitzi::move (int powerLeft, int powerRight) {
 #endif
 
 #ifndef __AVR__
+  haseMoved=true;
   std::cout << "Move PowerL: " << powerLeft << " PowerR: " << powerRight << '\n';
 #endif
 
@@ -74,7 +71,6 @@ void Flitzi::move(int cm) {
   delay(1000);
   curPose.y = curPose.y + cm;
 }
-
 
 void Flitzi::stop(){
   move(0,0);
@@ -115,9 +111,6 @@ void Flitzi::moveServo( byte servoPos){
     int delayTime = 0;
     delayTime = abs(servo.read() - servoPos) * 3;
     servo.write(servoPos);
-    //Serial.println("Time:" + String(delayTime));
-    //Serial.println("Pos");
-    //Serial.println(String(servo.read()));
     delay(delayTime);
 
   #ifndef __AVR__
@@ -125,44 +118,45 @@ void Flitzi::moveServo( byte servoPos){
   #endif
 }
 
-#ifdef __AVR__
-void Flitzi::showAtDisplay(String txt) {
-  //Serial.println(txt);
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(5,0);
-
-  //display.print(c);
-  display.println(txt);
-  display.display();
-}
-#endif
-
 byte Flitzi::getDistance() {
   unsigned int normDist = 0;
 
   for (byte i=0; i < 10; i++) {
     #ifdef __AVR__
       normDist += ultrasonic.distanceRead();
-      //Serial.println(" normDist: " + String(normDist));
     #endif
 
     #ifndef __AVR__
-      normDist+= ultrasonic.distanceRead(servo.read());
+      if (haseMoved) {
+        normDist+= ultrasonic.distanceRead(servo.read(),5);
+      } else {
+        normDist+= ultrasonic.distanceRead(servo.read(),0);
+      }
     #endif
   }
-
   normDist = normDist / 10;
   if (normDist > 255 || normDist==0) normDist=255;
 
   #ifdef __AVR__
-    //Serial.println("Dist:" + String(normDist / 10));
     showAtDisplay(String(normDist));
   #endif
 
   return (normDist);
 }
+
+
+#ifdef __AVR__
+void Flitzi::showAtDisplay(String txt) {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(5,0);
+  display.println(txt);
+  display.display();
+}
+#endif
+
+
 
 byte Flitzi::nextServoPos(byte step) {
 int newPos = 0;
@@ -191,31 +185,22 @@ void Flitzi::enviromentMapping(){
 
   //obstacles
   //  consider ultrasonic measuring angle
-    //if (curAngle > 15 && curAngle < 165) {
       for (byte a=0; a <= MEASURINGANGLE; a++ ) {
 
            if (trigonom(curAngle - MEASURINGANGLE/2 + a, dist) != oldPos) {
               updateFieldProbably(trigonom(curAngle - MEASURINGANGLE/2 +a, dist),1);
               oldPos = trigonom(curAngle - MEASURINGANGLE/2 +a, dist);
           }
-      //  }
       };
-
-      /*
-      visualiseArray();
-      delay(1000);
-      */
     //freefieldS
 
     for (int k=dist - RESOLUTION; k > 0; k = k - RESOLUTION ) {
     //   consider ultrasonic measuring angle
-      //if (curAngle > 15 && curAngle < 165) {
         for (byte a=0; a <= MEASURINGANGLE; a++ ) {
           if (trigonom(curAngle - MEASURINGANGLE/2 + a, k) != oldPos) {
              updateFieldProbably(trigonom(curAngle - MEASURINGANGLE/2 +a, k),-1);
              oldPos = trigonom(curAngle - MEASURINGANGLE/2 +a, k);
            }
-        // }
       }
     };
     curAngle = nextServoPos(5);
@@ -224,17 +209,18 @@ void Flitzi::enviromentMapping(){
 
 #ifdef __AVR__
   void Flitzi::generateSimulationData() {
-
+    byte nextPos = 0;
     moveServo(0);
     Serial.print("{");
     do {
-      Serial.print(String(getDistance()) + ", ");
+      Serial.print(String(getDistance()) + F(", "));
       delay(200);
-      moveServo(nextServoPos(5));
+      moveServo(nextPos);
+      nextPos = nextServoPos(5);
 
-    }while (scanReverse ==false);
-
-    Serial.println(F("1000}"));
+    }while (nextPos < 180);
+    moveServo(nextPos);
+    Serial.print(String(getDistance()) + F("}"));
 }
 #endif
 
@@ -268,7 +254,6 @@ void Flitzi::visualiseArray() {
     name.append(std::to_string(curPose.x));
     name.append(std::to_string(curPose.y));
     name.append(".ppm");
-    //name = std::string("out") + std::string(rand() % 100) + std::string(".ppm");
     FILE *f = fopen(name.c_str(), "wb");
     fprintf(f, "P6\n%i %i 255\n", MAPSIZE * 2, MAPSIZE *2);
   #endif
@@ -307,13 +292,11 @@ void Flitzi::visualiseArray() {
 
           #ifdef __AVR__
           Serial.print(curColor.red);   // 0 .. 255 RED
-          Serial.print(" ");
+          Serial.print(F(" "));
           Serial.print(curColor.green); // 0 .. 255 GREEN
-          Serial.print(" ");
+          Serial.print(F(" "));
           Serial.print(curColor.blue);
-          Serial.print("   ");  // 0 .. 255 BLUE
-          //delay(20);
-          //  line = line + String(curColor.red) + " " + String(curColor.green) + " " + String(curColor.blue) + "   ";
+          Serial.print(F("   "));  // 0 .. 255 BLUE
           #endif
      }
 
@@ -325,11 +308,6 @@ void Flitzi::visualiseArray() {
       #ifndef __AVR__
         fclose(f);
       #endif
-
-      #ifdef __AVR__
-        showAtDisplay(F("done!"));
-      #endif
-
   }
 
 Flitzi::arrayPos Flitzi::getArrayPos(div_t x, div_t y) {
@@ -339,7 +317,6 @@ Flitzi::arrayPos Flitzi::getArrayPos(div_t x, div_t y) {
     curArrayPos.x = 255;
     curArrayPos.y = 255;
     curArrayPos.nib = 255;
-    //std::cout << "x: " << (int) curArrayPos.x  << " y: " << (int) curArrayPos.y << " nib: " << (int)curArrayPos.nib << "\n";
     return curArrayPos;
   }
   curArrayPos.x =x.quot;
@@ -364,9 +341,7 @@ Flitzi::arrayPos Flitzi::getArrayPos(div_t x, div_t y) {
 }
 
 void Flitzi::setEnvMapVal(arrayPos curArrayPos, byte val) {
- //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
   if (!(curArrayPos.x == 255 or curArrayPos.y == 255 or curArrayPos.nib==255)){
-    //std::cout << "---- x: " << (int) curArrayPos.x << " y: " << (int) curArrayPos.y << "-----" "\n";
     switch (curArrayPos.nib) {
       case 0 : envMap[curArrayPos.x][curArrayPos.y].nib_00 = val; break;
       case 1 : envMap[curArrayPos.x][curArrayPos.y].nib_01 = val; break;
@@ -377,7 +352,6 @@ void Flitzi::setEnvMapVal(arrayPos curArrayPos, byte val) {
 }
 
 byte Flitzi::getEnvMapVal(arrayPos curArrayPos) {
-  //std::cout << "x index: " << x.quot << " y index: " << y.quot << "\n";
   if (!(curArrayPos.x == 255 or curArrayPos.y == 255 or curArrayPos.nib==255)){
     switch (curArrayPos.nib) {
       case 0 : return envMap[curArrayPos.x][curArrayPos.y].nib_00; break;
@@ -397,7 +371,6 @@ void Flitzi::updateFieldProbably(arrayPos curArrayPos, char alternationVal) {
 }
 
 Flitzi::arrayPos Flitzi::trigonom(int sensorAngle, byte dist){
-  //std::cout << "sensorAngle: " << (int) sensorAngle << "\n";
   switch (sensorAngle) {
     case 0: {
       return getArrayPos(div(dist + curPose.x + ROBOT_US_GAP , 4), div(curPose.y -ROBOT_US_GAP, 4));
@@ -425,7 +398,6 @@ Flitzi::arrayPos Flitzi::trigonom(int sensorAngle, byte dist){
 
 
 void Flitzi::setFieldOfRobot(){
-//TODO: Check Valid Robot Pos!
   for (byte x=0;x < ROBOTBREADTH / 2; x++){
     for (byte y=0; y < ROBOTLENGHT; y++) {
       setEnvMapVal(getArrayPos(div (curPose.x + x,4), div (curPose.y - y, 4)), -7);
@@ -434,7 +406,7 @@ void Flitzi::setFieldOfRobot(){
   }
 }
 
-
+#ifdef __AVR__
 void Flitzi::paintOnDisplay() {
   display.clearDisplay();
 
@@ -461,5 +433,5 @@ void Flitzi::paintOnDisplay() {
     }
     }
   display.display();
-
 }
+#endif

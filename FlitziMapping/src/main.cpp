@@ -29,9 +29,11 @@ void setup() {
     //robi.paintOnDisplay();
     robi.moveServo(0);
     delay(3000);
-    robi.enviromentMapping();
-    robi.paintOnDisplay();
-    robi.visualiseArray();
+    //robi.enviromentMapping();
+    //robi.paintOnDisplay();
+    //robi.visualiseArray();
+
+    //robi.generateSimulationData();
     /*
     delay(5000);
     robi.visualiseArray();
