@@ -26,18 +26,7 @@ void setup() {
   #ifdef __AVR__
 
     robi.init();
-    //robi.paintOnDisplay();
-    robi.moveServo(0);
-    delay(3000);
-    //robi.enviromentMapping();
-    //robi.paintOnDisplay();
-    //robi.visualiseArray();
-
-    //robi.generateSimulationData();
-    /*
-    delay(5000);
-    robi.visualiseArray();
-    */
+    robi.waitForButtonPress();
   #endif
 
   #ifndef __AVR__
@@ -54,28 +43,20 @@ void setup() {
 }
 
 void loop() {
-  /*
-  i = robi.nextServoPos(5);
-  robi.moveServo(i);
-  d = robi.getDistance();
-  #ifdef __AVR__
-    robi.showAtDisplay(String(d));
-  #endif
-
-  #ifndef __AVR__
-    std::cout << "Dist: " << d << "\n";
-  #endif
-*/
+#ifdef __AVR__
+  robi.moveServo(0);
+  robi.enviromentMapping();
+  robi.paintOnDisplay();
+  robi.visualiseArray();
+  robi.waitForButtonPress();
+  delay(1000);
+  robi.move(10);
+#endif
 }
 
 #ifndef __AVR__
 int main() {
   setup();
-/*
-  while(1==1) {
-    loop();
-  }
-  */
 return 0;
 }
 #endif

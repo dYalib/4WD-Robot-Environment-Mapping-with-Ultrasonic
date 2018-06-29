@@ -44,6 +44,9 @@ public:
     void showAtDisplay(String txt);
     void generateSimulationData();
     void paintOnDisplay();
+    void enableLED();
+    void disableLED();
+    void waitForButtonPress();
   #endif
 
 
@@ -111,6 +114,8 @@ private:
     static const byte PIN_IN2 PROGMEM =5; //PWM
     static const byte PIN_IN3 PROGMEM =9; //LOW -> Back
     static const byte PIN_IN4 PROGMEM =6; //PWM
+    static const byte PIN_SWITCH PROGMEM = 11;
+    static const byte PIN_LED PROGMEM =12;
     static const byte servoForward PROGMEM = 87;
     static const byte numbertwo PROGMEM = 2;
   #endif

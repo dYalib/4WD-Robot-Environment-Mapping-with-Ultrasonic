@@ -30,6 +30,10 @@ Flitzi::Flitzi() {
 
 #ifdef __AVR__
   void Flitzi::init() {
+
+    pinMode(PIN_LED, OUTPUT);
+
+
     Serial.begin(9600);
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     display.clearDisplay();
@@ -67,14 +71,32 @@ void Flitzi::move (int powerLeft, int powerRight) {
 }
 
 void Flitzi::move(int cm) {
-  move(125,125);
-  delay(1000);
+  move(90,90);
+  delay(450);
+  stop();
   curPose.y = curPose.y + cm;
+  setFieldOfRobot();
 }
 
 void Flitzi::stop(){
   move(0,0);
 }
+
+#ifdef __AVR__
+  void Flitzi::enableLED(){
+    digitalWrite(12,HIGH);
+  }
+
+  void Flitzi::disableLED(){
+    digitalWrite(PIN_LED,LOW);
+  }
+
+  void Flitzi::waitForButtonPress() {
+    enableLED();
+      while(digitalRead(13) == LOW) {}
+    disableLED();
+  }
+#endif
 
 void Flitzi::turn (int degree) {
 switch (degree) {
