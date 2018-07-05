@@ -24,7 +24,7 @@
 #define RESOLUTION 2
 #define MEASURINGANGLE 16
 #define ROBOTLENGHT 20
-#define ROBOTBREADTH 10
+#define ROBOTWIDTH 10
 #define ROBOT_US_GAP 2
 
 

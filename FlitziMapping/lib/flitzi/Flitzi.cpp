@@ -420,7 +420,7 @@ Flitzi::arrayPos Flitzi::trigonom(int sensorAngle, byte dist){
 
 
 void Flitzi::setFieldOfRobot(){
-  for (byte x=0;x < ROBOTBREADTH / 2; x++){
+  for (byte x=0;x < ROBOTWIDTH / 2; x++){
     for (byte y=0; y < ROBOTLENGHT; y++) {
       setEnvMapVal(getArrayPos(div (curPose.x + x,4), div (curPose.y - y, 4)), -7);
       setEnvMapVal(getArrayPos(div (curPose.x -x ,4), div (curPose.y - y, 4)), -7);

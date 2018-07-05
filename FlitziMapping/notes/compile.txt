@@ -1,2 +1,4 @@
  g++ -Wall -std=c++11 -I ~/git/MobRobotik/FlitziMapping/lib/flitzi -I ~/git/MobRobotik/FlitziMapping/lib/ServoSim -I ~/git/MobRobotik/FlitziMapping/lib/UltranosicSim ~/git/MobRobotik/FlitziMapping/src/main.cpp ~/git/MobRobotik/FlitziMapping/lib/flitzi/Flitzi.cpp ~/git/MobRobotik/FlitziMapping/lib/ServoSim/ServoSim.cpp ~/git/MobRobotik/FlitziMapping/lib/UltranosicSim/UltrasonicSim.cpp -o flitzi
 
+
+fold ( \a -> 1 ) ( \bcd -> b + c - d ) ( Branch ( Leaf 2 ) 3 ( Branch ( Leaf 1 ) 4 ( Leaf 5 ) ) )
